@@ -54,7 +54,7 @@ from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 # from keras.optimizers import adam_v2
 # Thanks to matevzl533 for reporting this. 
 # Reference: https://stackoverflow.com/a/68704757
-from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from keras.initializers import he_uniform
 
 import amfinder_log as AmfLog

@@ -37,7 +37,8 @@ from keras.models import Model
 # from tf_agents.networks import network
 # Thanks to matevzl533 for reporting this. 
 # Reference: https://www.tensorflow.org/agents/tutorials/8_networks_tutorial
-from keras.engine.network import Network
+# from keras.engine.network import Network
+import tensorflow.python.keras.engine
 from keras import backend as K
 
 import amfinder_model as AmfModel
