@@ -48,6 +48,7 @@ scipy
 six
 tensorboard
 tensorflow-macos
+tensorflow-metal
 tensorflow-estimator
 termcolor
 threadpoolctl
