@@ -62,7 +62,7 @@ random.seed(42)
 import pyvips
 import operator
 import functools
-import zipfile as zf
+import amfinder_zipfile as zf
 import numpy as np
 import pandas as pd
 #from PIL import Image # debug
@@ -260,7 +260,7 @@ def load_dataset(input_files):
     :rtype: tuple
     """
 
-    print('* Tile extraction.')
+    print(f'[{AmfConfig.invite()}] Tile extraction.')
 
     # Load image settings and annotations.
     settings = [import_settings(path) for path in input_files]
@@ -334,15 +334,25 @@ def class_weights(one_hot_labels):
     :rtype: dict
     """
 
-    print('* Class weights')
+    print(f'[{AmfConfig.invite()}] Class weights')
 
     if AmfConfig.colonization():
 
         # For instance, [[0, 0, 1], [1, 0 , 0]] returns [2, 0]
         hot_indexes = np.argmax(one_hot_labels, axis=1)
+        unique = np.unique(hot_indexes)
         class_weights = compute_class_weight('balanced',
-                                             classes=np.unique(hot_indexes),
+                                             classes=unique,
                                              y=hot_indexes)
+
+        # Annotation classes that do not ocurr in the input dataset.
+        missing = [x for x in [0, 1, 2] if x not in unique]
+
+        if missing != []:
+            all_indices = list(unique) + missing
+            all_weights = list(class_weights) + [0] * len(missing)
+            class_weights = sorted(list(zip(all_indices, all_weights)))
+            class_weights = [y for _, y in class_weights]
 
         for cls, num, w  in zip(AmfConfig.get('header'),
                                 np.bincount(hot_indexes),

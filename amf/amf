@@ -27,8 +27,10 @@ import os
 # Disables tensorflow messages/warnings.
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+import amfinder_log as AmfLog
 import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
+import amfinder_convert as AmfConvert
 import amfinder_predict as AmfPredict
 import amfinder_diagnose as AmfDiagnose
 import amfinder_superresolution as AmfSR
@@ -37,33 +39,31 @@ import amfinder_superresolution as AmfSR
 
 def main():
 
-    print('AMFinder script version 2.0')
     AmfConfig.initialize()
     run_mode = AmfConfig.get('run_mode')
     input_files = AmfConfig.get_input_files()
 
+    AmfLog.text(f'Mode: {run_mode.upper()}')
     if run_mode == 'train':
        
         if AmfConfig.get('super_resolution'):
-        
-            print('* Running in super-resolution training mode')
-        
+       
             AmfSR.train(input_files)
         
         else:
-
-            print('* Running in training mode')
-        
+       
             AmfTrain.run(input_files)
 
     elif run_mode == 'predict':
 
-        print('* Running in prediction mode')
         AmfPredict.run(input_files)
+
+    elif run_mode == 'convert':
+    
+        AmfConvert.run(input_files)
 
     elif run_mode == 'diagnose':
     
-        print('* Running in diagnostic mode')
         AmfDiagnose.run(input_files)
 
     else:

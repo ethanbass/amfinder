@@ -37,7 +37,7 @@ import os
 import pyvips
 import numpy as np
 import pandas as pd
-import zipfile as zf
+import amfinder_zipfile as zf
 from itertools import zip_longest
 # For intermediate images
 from PIL import Image
@@ -74,7 +74,7 @@ def process_row_1(cnn1, image, nrows, ncols, batch_size, r, sr_image):
     # Convert to NumPy array, and normalize.
     row = AmfSegm.preprocess(row)
     # Predict mycorrhizal structures.
-    prd = cnn1.predict(row, batch_size=batch_size)
+    prd = cnn1.predict(row, batch_size=batch_size, verbose=0)
     # Update the progress bar.
     AmfLog.progress_bar(r + 1, nrows, indent=1)
     # Return prediction as Pandas data frame.
@@ -122,7 +122,7 @@ def predict_level2(path, image, nrows, ncols, model):
                 row = [AmfSegm.tile(image, x[0], x[1]) for x in batch]
                 row = AmfSegm.preprocess(row)
                 # Returns three prediction tables (one per class).
-                prd = model.predict(row, batch_size=25)
+                prd = model.predict(row, batch_size=25, verbose=0)
                 # Converts to a table of predictions.
                 ap = prd[0].tolist()
                 vp = prd[1].tolist()
@@ -284,7 +284,7 @@ def run(input_images, postprocess=None):
     for path in input_images:
 
         base = os.path.basename(path)
-        print(f'* Image {base}')
+        AmfLog.text(f'Image {base}')
 
         edge = AmfConfig.update_tile_edge(path)
 

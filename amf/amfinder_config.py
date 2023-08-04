@@ -29,30 +29,33 @@ Read command-line arguments and store user settings.
 
 Variables
 ------------
-HEADERS - Table headers for the different annotation levels. 
-PAR - User settings.
+:HEADERS: Table headers for the different annotation levels. 
+:PAR: User settings.
 
 Functions
 ------------
-tsv_name - Return the TSV file corresponding to the current annotation level.
-get - Retrieve the value associated with the given parameter ID.
-colonization - Indicate whether the current level is level 1 (colonization).
-intra_struct - Indicate whether the current level is level 2 (structures).
-set - Assign a new value to the given parameter ID.
-training_subparser - Define the command-line parser used in training mode.
-prediction_subparser - Define the command-line parser used in prediction mode.
-build_arg_parser - Build the full command-line parser.
-import_settings - Read tile size from `settings.json`.
-get_input_files - Return the list of vaid input images (based on MIME type).
-initialize - Read command-line arguments and store user-defined values.
+:function string_of_level: Returns the CNN name for the given prediction level.
+:function tsv_name: Return the TSV file corresponding to the current annotation level.
+:function human_redable_header: Human-readable annotation class labels.
+:function get: Retrieve the value associated with the given parameter ID.
+:function colonization: Indicate whether the current level is level 1 (colonization).
+:function intra_struct: Indicate whether the current level is level 2 (structures).
+:function set: Assign a new value to the given parameter ID.
+:function training_subparser: Define the command-line parser used in training mode.
+:function prediction_subparser: Define the command-line parser used in prediction mode.
+:function build_arg_parser: Build the full command-line parser.
+:function import_settings: Read tile size from `settings.json`.
+:function get_input_files: Return the list of vaid input images (based on MIME type).
+:function initialize: Read command-line arguments and store user-defined values.
 """
 
 
 import os
 import glob
 import yaml
+import datetime
 import mimetypes
-import zipfile as zf
+import amfinder_zipfile as zf
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
@@ -61,6 +64,9 @@ import amfinder_log as AmfLog
 
 
 HEADERS = [['Y', 'N', 'X'], ['A', 'V', 'H', 'I']]
+HUMAN_HEADERS = [['M+', 'M−', 'Other'], ['Arb', 'Ves', 'Hyp', 'IH']]
+DESCRIPTIONS = [['colonized', 'non-colonised', 'background'], 
+                ['arbuscules', 'vesicles', 'hyphopodia', 'intraradical hyphae']]
 
 PAR = {
     'run_mode': None,
@@ -73,6 +79,7 @@ PAR = {
     'drop': True,
     'epochs': 100,
     'vfrac': 15,
+    'threshold': 0.5,
     'data_augm': False,
     'save_augmented_tiles': 0,
     'summary': False,
@@ -104,18 +111,47 @@ def get_appdir():
 
 
 
+def invite():
+    """
+    Command-line invite
+    """
+    return datetime.datetime.now().strftime('%H:%M:%S')
+
+
+def get_class_documentation():
+    """
+    Return class documentation.
+    """
+    data = [[f'{x} ({y})' for x, y in zip(b, a)]
+            for b, a in zip (HUMAN_HEADERS, DESCRIPTIONS)]
+
+    return ', '.join(data[PAR['level'] - 1])
+
+
+def string_of_level():
+    """
+    Return the name corresponding to the current annotation level. 
+    """
+
+    return 'col' if PAR['level'] == 1 else 'myc'
+
+
+
 def tsv_name():
     """
     Return the TSV file corresponding to the current annotation level. 
     """
 
-    if PAR['level'] == 1:
-    
-        return 'col.tsv'
-    
-    else:
+    return string_of_level() + '.tsv'
 
-        return 'myc.tsv'
+
+
+def human_redable_header():
+    """
+    Return the human-readable header of the current annotation level.
+    """
+
+    return HUMAN_HEADERS[PAR['level'] - 1]
 
 
 
@@ -411,6 +447,36 @@ def diagnostic_subparser(subparsers):
 
 
 
+def conversion_subparser(subparsers):
+
+    parser = subparsers.add_parser('convert',
+        help='Runs AMFinder in conversion mode.',
+        formatter_class=RawTextHelpFormatter)
+
+    x = PAR['threshold']
+    parser.add_argument('-th', '--threshold',
+        action='store', dest='threshold', metavar='N', type=float, default=x,
+        help='threshold for conversion: {}'.format(x))
+
+    level = parser.add_mutually_exclusive_group()
+
+    level.add_argument('-1', '--CNN1',
+        action='store_const', dest='level', const=1,
+        help='Convert root colonisation predictions (default)')
+
+    level.add_argument('-2', '--CNN2',
+        action='store_const', dest='level', const=2,
+        help='Convert fungal hyphal structure predictions.')
+
+    x = PAR['input_files']
+    parser.add_argument('image', nargs='*', default=x,
+        help='plant root scan to be processed.'
+             '\ndefault value: {}'.format(x))
+
+    return parser
+
+
+
 def build_arg_parser():
     """
     Builds AMFinder command-line parser.
@@ -426,6 +492,7 @@ def build_arg_parser():
     _ = training_subparser(subparsers)
     _ = prediction_subparser(subparsers)
     _ = diagnostic_subparser(subparsers)
+    _ = conversion_subparser(subparsers)
 
     return main
 
@@ -474,7 +541,7 @@ def get_input_files():
     raw_list = abspath(get('input_files'))
     valid_types = ['image/jpeg', 'image/tiff']
     images = [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
-    print('* Input images: {}'.format(len(images)))
+    AmfLog.text(f'Input images: {len(images)}')
     return images
 
 
@@ -522,6 +589,11 @@ def initialize():
     elif par.run_mode == 'diagnose': 
         
         set('model', par.model)   
+    
+    elif par.run_mode == 'convert':
+   
+        set('level', par.level)
+        set('threshold', par.threshold)
         
     else:
     
