@@ -28,10 +28,11 @@ import numpy as np
 import datetime
 import matplotlib.pyplot as plt
 
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.legacy import Adam
 from keras.layers import Input, Dense, BatchNormalization, Add
 from keras.layers import PReLU, LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
+# from keras.layers.convolutional import UpSampling2D, Conv2D
+from tensorflow.keras.layers import LSTM
 from keras.models import Model
 # From keras 2.5, the following will be replaced by:
 from tf_agents.networks import network
