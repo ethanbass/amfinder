@@ -147,13 +147,13 @@ def python_annot_to_ocaml_1(out, zfile):
 
         d1 = pd.DataFrame(mat1).to_csv(sep='\t', encoding='utf-8',
                                        index=False, header=False,
-                                       mode='a', line_terminator='')
+                                       mode='a')
         zi = AmfSave.get_zip_info('annotations/col.caml', 1)
         # There is still a trailing character at the end of the csv text.
         z.writestr(zi, d1[:-1])
         d2 = pd.DataFrame(mat2).to_csv(sep='\t', encoding='utf-8',
                                        index=False, header=False,
-                                       mode='a', line_terminator='')
+                                       mode='a')
         zi = AmfSave.get_zip_info('annotations/myc.caml', 0)
         # There is still a trailing character at the end of the csv text.
         z.writestr(zi, d2[:-1])
@@ -180,7 +180,7 @@ def python_annot_to_ocaml_2(out, zfile):
         z.remove('annotations/myc.caml')
         d2 = pd.DataFrame(mat2).to_csv(sep='\t', encoding='utf-8',
                                        index=False, header=False,
-                                       mode='a', line_terminator='')
+                                       mode='a')
         zi = AmfSave.get_zip_info('annotations/myc.caml', 0)
         # There is still a trailing character at the end of the csv text.
         z.writestr(zi, d2[:-1])
@@ -223,7 +223,7 @@ def update_archive(out, zfile):
     with zf.ZipFile(zfile, 'a') as z:
 
         data = out.to_csv(sep='\t', encoding='utf-8', index=False,
-                          mode='a', line_terminator='')
+                          mode='a')
         zi = AmfSave.get_zip_info(AmfConfig.tsv_name(), AmfConfig.string_of_level())
         z.writestr(zi, data[:-1])
 
